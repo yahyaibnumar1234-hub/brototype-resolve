@@ -78,7 +78,7 @@ const AdminDashboard = () => {
         (c) =>
           c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.profiles.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+          c.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -213,7 +213,7 @@ const AdminDashboard = () => {
                     <div className="flex-1">
                       <CardTitle className="text-lg">{complaint.title}</CardTitle>
                       <CardDescription className="mt-1">
-                        By {complaint.profiles.full_name} •{" "}
+                        By {complaint.profiles?.full_name || 'Unknown Student'} •{" "}
                         {formatDistanceToNow(new Date(complaint.created_at), {
                           addSuffix: true,
                         })}
