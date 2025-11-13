@@ -11,10 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, ArrowRight, Sparkles, Save } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Sparkles, Save, ImagePlus, X } from "lucide-react";
 import { ComplaintTemplates } from "@/components/ComplaintTemplates";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { useAICategory } from "@/hooks/useAICategory";
+import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 
 const NewComplaint = () => {
   const [step, setStep] = useState(0);
@@ -38,6 +39,9 @@ const NewComplaint = () => {
 
   // AI category detection
   const { suggestedCategory, confidence } = useAICategory(title + " " + description);
+
+  // Photo upload
+  const { photo, photoPreview, uploading, handlePhotoSelect, uploadPhoto, removePhoto } = usePhotoUpload();
 
   // Load existing draft on mount
   useEffect(() => {
@@ -107,14 +111,21 @@ const NewComplaint = () => {
         description: "Failed to submit complaint",
         variant: "destructive",
       });
-    } else {
-      await clearDraft();
-      toast({
-        title: "Success",
-        description: "Your complaint has been submitted",
-      });
-      navigate("/dashboard");
+      setIsLoading(false);
+      return;
     }
+
+    // Upload photo if exists
+    if (photo && data) {
+      await uploadPhoto(data.id, user?.id as string);
+    }
+
+    await clearDraft();
+    toast({
+      title: "Success",
+      description: "Your complaint has been submitted",
+    });
+    navigate("/dashboard");
 
     setIsLoading(false);
   };
@@ -298,6 +309,51 @@ const NewComplaint = () => {
                   </p>
                 </div>
 
+                {/* Photo Upload Section */}
+                <div className="space-y-2">
+                  <Label>Attach Photo (Optional)</Label>
+                  {!photoPreview ? (
+                    <div>
+                      <input
+                        type="file"
+                        id="photo-upload"
+                        accept="image/jpeg,image/jpg,image/png"
+                        className="hidden"
+                        onChange={handlePhotoSelect}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => document.getElementById("photo-upload")?.click()}
+                      >
+                        <ImagePlus className="mr-2 h-4 w-4" />
+                        Add Photo
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        JPG, PNG only. Max 5MB
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img
+                        src={photoPreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={removePhoto}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -328,6 +384,16 @@ const NewComplaint = () => {
                     <Label className="text-muted-foreground">Description</Label>
                     <p className="whitespace-pre-wrap">{description}</p>
                   </div>
+                  {photoPreview && (
+                    <div>
+                      <Label className="text-muted-foreground">Attached Photo</Label>
+                      <img
+                        src={photoPreview}
+                        alt="Complaint attachment"
+                        className="mt-2 w-full max-h-64 object-cover rounded-lg border"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -346,9 +412,9 @@ const NewComplaint = () => {
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back
                   </Button>
-                  <Button onClick={handleSubmit} disabled={isLoading} className="flex-1">
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Submit Complaint
+                  <Button onClick={handleSubmit} disabled={isLoading || uploading} className="flex-1">
+                    {(isLoading || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {uploading ? "Uploading..." : "Submit Complaint"}
                   </Button>
                 </div>
               </div>

@@ -98,6 +98,119 @@ export type Database = {
           },
         ]
       }
+      complaint_drafts: {
+        Row: {
+          category: Database["public"]["Enums"]["complaint_category"] | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_anonymous: boolean | null
+          student_id: string
+          title: string | null
+          updated_at: string | null
+          urgency: Database["public"]["Enums"]["complaint_urgency"] | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["complaint_category"] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          student_id: string
+          title?: string | null
+          updated_at?: string | null
+          urgency?: Database["public"]["Enums"]["complaint_urgency"] | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["complaint_category"] | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          student_id?: string
+          title?: string | null
+          updated_at?: string | null
+          urgency?: Database["public"]["Enums"]["complaint_urgency"] | null
+        }
+        Relationships: []
+      }
+      complaint_feedback: {
+        Row: {
+          comments: string | null
+          communication_rating: number | null
+          complaint_id: string
+          created_at: string | null
+          id: string
+          resolution_quality: number | null
+          resolution_speed: number | null
+          student_id: string
+        }
+        Insert: {
+          comments?: string | null
+          communication_rating?: number | null
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          resolution_quality?: number | null
+          resolution_speed?: number | null
+          student_id: string
+        }
+        Update: {
+          comments?: string | null
+          communication_rating?: number | null
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          resolution_quality?: number | null
+          resolution_speed?: number | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_feedback_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaint_tags: {
+        Row: {
+          complaint_id: string
+          created_at: string | null
+          id: string
+          tag_id: string
+        }
+        Insert: {
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          tag_id: string
+        }
+        Update: {
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_tags_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaint_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
           assigned_to: string | null
@@ -107,6 +220,7 @@ export type Database = {
           id: string
           is_anonymous: boolean | null
           resolved_at: string | null
+          starred: boolean | null
           status: Database["public"]["Enums"]["complaint_status"]
           student_id: string
           title: string
@@ -121,6 +235,7 @@ export type Database = {
           id?: string
           is_anonymous?: boolean | null
           resolved_at?: string | null
+          starred?: boolean | null
           status?: Database["public"]["Enums"]["complaint_status"]
           student_id: string
           title: string
@@ -135,6 +250,7 @@ export type Database = {
           id?: string
           is_anonymous?: boolean | null
           resolved_at?: string | null
+          starred?: boolean | null
           status?: Database["public"]["Enums"]["complaint_status"]
           student_id?: string
           title?: string
@@ -158,6 +274,41 @@ export type Database = {
           },
         ]
       }
+      private_notes: {
+        Row: {
+          complaint_id: string
+          created_at: string | null
+          id: string
+          note: string
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          note: string
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          note?: string
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "private_notes_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -176,6 +327,24 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

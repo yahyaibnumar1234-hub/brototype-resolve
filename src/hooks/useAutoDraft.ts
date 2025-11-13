@@ -31,7 +31,7 @@ export const useAutoDraft = (data: DraftData, enabled: boolean = true) => {
             student_id: user.id,
             title: data.title,
             description: data.description,
-            category: data.category || null,
+            category: data.category as any,
             urgency: data.urgency as any,
             is_anonymous: data.is_anonymous,
           };
