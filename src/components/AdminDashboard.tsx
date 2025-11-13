@@ -5,12 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Search, BarChart3 } from "lucide-react";
+import { LogOut, Search, BarChart3, Download, TrendingUp } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
+import { ComplaintHeatmap } from "@/components/ComplaintHeatmap";
+import { exportToCSV, exportToPDF } from "@/utils/exportUtils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Complaint {
   id: string;
@@ -105,10 +110,13 @@ const AdminDashboard = () => {
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-          <Button variant="ghost" onClick={signOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={signOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -145,100 +153,146 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search complaints..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by urgency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Urgency</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Complaints List */}
-        {loading ? (
-          <div className="text-center py-12">Loading...</div>
-        ) : filteredComplaints.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No complaints found</h3>
-              <p className="text-muted-foreground">
-                {searchQuery || statusFilter !== "all" || urgencyFilter !== "all"
-                  ? "Try adjusting your filters"
-                  : "No complaints have been submitted yet"}
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {filteredComplaints.map((complaint) => (
-              <Card
-                key={complaint.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => navigate(`/complaint/${complaint.id}`)}
+        <Tabs defaultValue="complaints" className="w-full">
+          <div className="flex justify-between items-center mb-6">
+            <TabsList>
+              <TabsTrigger value="complaints">
+                <Search className="h-4 w-4 mr-2" />
+                Complaints
+              </TabsTrigger>
+              <TabsTrigger value="analytics">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger value="heatmap">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Heatmap
+              </TabsTrigger>
+            </TabsList>
+            
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => exportToCSV(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.csv`)}
               >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{complaint.title}</CardTitle>
-                      <CardDescription className="mt-1">
-                        By {complaint.profiles?.full_name || 'Unknown Student'} •{" "}
-                        {formatDistanceToNow(new Date(complaint.created_at), {
-                          addSuffix: true,
-                        })}
-                      </CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      <StatusBadge status={complaint.status} />
-                      <UrgencyBadge urgency={complaint.urgency} />
-                    </div>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => exportToPDF(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.pdf`)}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export PDF
+              </Button>
+            </div>
+          </div>
+
+          <TabsContent value="complaints" className="space-y-6">
+            {/* Filters */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search complaints..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground line-clamp-2">
-                    {complaint.description}
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="open">Open</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by urgency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Urgency</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Complaints List */}
+            {loading ? (
+              <div className="text-center py-12">Loading...</div>
+            ) : filteredComplaints.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No complaints found</h3>
+                  <p className="text-muted-foreground">
+                    {searchQuery || statusFilter !== "all" || urgencyFilter !== "all"
+                      ? "Try adjusting your filters"
+                      : "No complaints have been submitted yet"}
                   </p>
-                  <div className="mt-2">
-                    <span className="text-sm font-medium capitalize">
-                      {complaint.category}
-                    </span>
-                  </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+            ) : (
+              <div className="grid gap-4">
+                {filteredComplaints.map((complaint) => (
+                  <Card
+                    key={complaint.id}
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate(`/complaint/${complaint.id}`)}
+                  >
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">{complaint.title}</CardTitle>
+                          <CardDescription className="mt-1">
+                            By {complaint.profiles?.full_name || 'Unknown Student'} •{" "}
+                            {formatDistanceToNow(new Date(complaint.created_at), {
+                              addSuffix: true,
+                            })}
+                          </CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                          <StatusBadge status={complaint.status} />
+                          <UrgencyBadge urgency={complaint.urgency} />
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground line-clamp-2">
+                        {complaint.description}
+                      </p>
+                      <div className="mt-2">
+                        <span className="text-sm font-medium capitalize">
+                          {complaint.category}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <AnalyticsDashboard complaints={complaints as any} />
+          </TabsContent>
+
+          <TabsContent value="heatmap">
+            <ComplaintHeatmap complaints={complaints} />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
