@@ -171,6 +171,32 @@ const ComplaintDetail = () => {
     }
   };
 
+  const handleReopenComplaint = async () => {
+    setSubmitting(true);
+    const { error } = await supabase
+      .from("complaints")
+      .update({ 
+        status: "open",
+        resolved_at: null 
+      })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reopen complaint",
+        variant: "destructive",
+      });
+    } else {
+      fetchComplaint();
+      toast({
+        title: "Success",
+        description: "Complaint reopened successfully",
+      });
+    }
+    setSubmitting(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -261,6 +287,24 @@ const ComplaintDetail = () => {
                       </div>
                     </a>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {!isAdmin && complaint.status === "resolved" && (
+              <div className="pt-4 border-t">
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">Not Satisfied with Resolution?</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    If you feel the issue wasn't fully resolved, you can reopen this complaint.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleReopenComplaint}
+                    disabled={submitting}
+                  >
+                    {submitting ? "Reopening..." : "Reopen Complaint"}
+                  </Button>
                 </div>
               </div>
             )}
