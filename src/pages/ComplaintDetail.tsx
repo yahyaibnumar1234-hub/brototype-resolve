@@ -25,7 +25,7 @@ interface Complaint {
   profiles: {
     full_name: string;
     email: string;
-  };
+  } | null;
 }
 
 interface Comment {
@@ -35,7 +35,7 @@ interface Comment {
   user_id: string;
   profiles: {
     full_name: string;
-  };
+  } | null;
 }
 
 const ComplaintDetail = () => {
@@ -178,7 +178,7 @@ const ComplaintDetail = () => {
                 <CardTitle className="text-2xl">{complaint.title}</CardTitle>
                 <CardDescription className="mt-2">
                   {isAdmin
-                    ? `Submitted by ${complaint.profiles.full_name} (${complaint.profiles.email})`
+                    ? `Submitted by ${complaint.profiles?.full_name || 'Unknown Student'} (${complaint.profiles?.email || 'N/A'})`
                     : `Submitted ${format(new Date(complaint.created_at), "PPP")}`}
                 </CardDescription>
               </div>
@@ -256,7 +256,7 @@ const ComplaintDetail = () => {
                   >
                     <div className="flex justify-between items-start mb-2">
                       <span className="font-semibold">
-                        {comment.profiles.full_name}
+                        {comment.profiles?.full_name || 'Unknown User'}
                       </span>
                       <span className="text-sm text-muted-foreground">
                         {format(new Date(comment.created_at), "PPp")}
