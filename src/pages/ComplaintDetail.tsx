@@ -9,8 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StatusBadge } from "@/components/StatusBadge";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
+
+interface Attachment {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string;
+  created_at: string;
+}
 
 interface Complaint {
   id: string;
@@ -42,6 +50,7 @@ const ComplaintDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -53,6 +62,7 @@ const ComplaintDetail = () => {
     if (id) {
       fetchComplaint();
       fetchComments();
+      fetchAttachments();
     }
   }, [id]);
 
@@ -96,6 +106,18 @@ const ComplaintDetail = () => {
 
     if (!error && data) {
       setComments(data as any);
+    }
+  };
+
+  const fetchAttachments = async () => {
+    const { data, error } = await supabase
+      .from("attachments")
+      .select("*")
+      .eq("complaint_id", id)
+      .order("created_at", { ascending: true });
+
+    if (!error && data) {
+      setAttachments(data);
     }
   };
 
@@ -211,6 +233,37 @@ const ComplaintDetail = () => {
                 </div>
               )}
             </div>
+
+            {attachments.length > 0 && (
+              <div className="pt-4 border-t">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4" />
+                  Attachments
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {attachments.map((attachment) => (
+                    <a
+                      key={attachment.id}
+                      href={attachment.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative aspect-square rounded-lg overflow-hidden border hover:border-primary transition-colors"
+                    >
+                      <img
+                        src={attachment.file_url}
+                        alt={attachment.file_name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-sm px-2 text-center truncate max-w-full">
+                          {attachment.file_name}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {isAdmin && (
               <div className="pt-4 border-t">
