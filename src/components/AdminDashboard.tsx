@@ -311,6 +311,17 @@ const AdminDashboard = () => {
             {/* Filters */}
             <Card>
               <CardContent className="pt-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={selectedComplaints.size === filteredComplaints.length && filteredComplaints.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                    <span className="text-sm font-medium">
+                      Select All ({filteredComplaints.length})
+                    </span>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -364,42 +375,67 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
-                {filteredComplaints.map((complaint) => (
-                  <Card
-                    key={complaint.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => navigate(`/complaint/${complaint.id}`)}
-                  >
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{complaint.title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            By {complaint.profiles?.full_name || 'Unknown Student'} •{" "}
-                            {formatDistanceToNow(new Date(complaint.created_at), {
-                              addSuffix: true,
-                            })}
-                          </CardDescription>
+              <div className="space-y-4">
+                {filteredComplaints.map((complaint) => {
+                  const isOverdue = isComplaintOverdue(
+                    complaint.created_at,
+                    complaint.status,
+                    complaint.resolved_at
+                  );
+                  const overdueHours = getOverdueHours(complaint.created_at);
+
+                  return (
+                    <Card key={complaint.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="pt-6">
+                        <div className="flex items-start gap-4">
+                          <Checkbox
+                            checked={selectedComplaints.has(complaint.id)}
+                            onCheckedChange={() => toggleSelectComplaint(complaint.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h3 className="font-semibold text-lg">{complaint.title}</h3>
+                                  {isOverdue && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      <AlertCircle className="h-3 w-3 mr-1" />
+                                      Overdue {Math.round(overdueHours)}h
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  By {complaint.profiles?.full_name || 'Unknown Student'} •{" "}
+                                  {formatDistanceToNow(new Date(complaint.created_at), {
+                                    addSuffix: true,
+                                  })}
+                                </p>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/complaint/${complaint.id}`)}
+                              >
+                                View Details
+                              </Button>
+                            </div>
+                            <p className="text-muted-foreground line-clamp-2 mb-3">
+                              {complaint.description}
+                            </p>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-medium capitalize px-2 py-1 bg-muted rounded">
+                                {complaint.category}
+                              </span>
+                              <StatusBadge status={complaint.status} />
+                              <UrgencyBadge urgency={complaint.urgency} />
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <StatusBadge status={complaint.status} />
-                          <UrgencyBadge urgency={complaint.urgency} />
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground line-clamp-2">
-                        {complaint.description}
-                      </p>
-                      <div className="mt-2">
-                        <span className="text-sm font-medium capitalize">
-                          {complaint.category}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
