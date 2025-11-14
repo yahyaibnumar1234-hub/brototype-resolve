@@ -16,6 +16,7 @@ import { ComplaintTemplates } from "@/components/ComplaintTemplates";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { useAICategory } from "@/hooks/useAICategory";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 
 const NewComplaint = () => {
   const [step, setStep] = useState(0);
@@ -295,10 +296,15 @@ const NewComplaint = () => {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description">Description *</Label>
+                    <VoiceRecorder 
+                      onTranscription={(text) => setDescription(prev => prev ? `${prev}\n${text}` : text)}
+                    />
+                  </div>
                   <Textarea
                     id="description"
-                    placeholder="Provide detailed information about your complaint"
+                    placeholder="Provide detailed information about your complaint (or use voice recording)"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={6}

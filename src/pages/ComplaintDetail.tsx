@@ -11,6 +11,13 @@ import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Send, Loader2, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
+import { ComplaintTimeline } from "@/components/ComplaintTimeline";
+import { PrivateNotes } from "@/components/PrivateNotes";
+import { FeedbackModal } from "@/components/FeedbackModal";
+import { TagManager } from "@/components/TagManager";
+import { AISuggestions } from "@/components/AISuggestions";
+import { ComplaintSummary } from "@/components/ComplaintSummary";
+import { ResponseTemplates } from "@/components/ResponseTemplates";
 
 interface Attachment {
   id: string;
@@ -332,60 +339,73 @@ const ComplaintDetail = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Comments</CardTitle>
-            <CardDescription>
-              Communication thread for this complaint
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {comments.length === 0 ? (
-              <p className="text-center text-muted-foreground py-4">
-                No comments yet. Be the first to comment!
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="border rounded-lg p-4 bg-muted/30"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-semibold">
-                        {comment.profiles?.full_name || 'Unknown User'}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {format(new Date(comment.created_at), "PPp")}
-                      </span>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle>Comments</CardTitle>
+              <CardDescription>
+                Communication thread for this complaint
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {comments.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  No comments yet. Be the first to comment!
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {comments.map((comment) => (
+                    <div
+                      key={comment.id}
+                      className="border rounded-lg p-4 bg-muted/30"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-semibold">
+                          {comment.profiles?.full_name || 'Unknown User'}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {format(new Date(comment.created_at), "PPp")}
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground whitespace-pre-wrap">
+                        {comment.message}
+                      </p>
                     </div>
-                    <p className="text-muted-foreground whitespace-pre-wrap">
-                      {comment.message}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            <div className="pt-4 border-t">
-              <Textarea
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                rows={3}
-                className="mb-2"
-              />
-              <Button
-                onClick={handleAddComment}
-                disabled={!newComment.trim() || submitting}
-              >
-                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Send className="h-4 w-4 mr-2" />
-                Add Comment
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="pt-4 border-t">
+                <Textarea
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  rows={3}
+                  className="mb-2"
+                />
+                <Button
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim() || submitting}
+                >
+                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Send className="h-4 w-4 mr-2" />
+                  Add Comment
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {isAdmin && (
+            <ResponseTemplates onSelectTemplate={(template) => setNewComment(template)} />
+          )}
+        </div>
+
+        {isAdmin && complaint && (
+          <div className="grid gap-6 md:grid-cols-2">
+            <ComplaintSummary complaint={complaint} />
+            <AISuggestions complaint={complaint} />
+          </div>
+        )}
       </main>
     </div>
   );
