@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Search, BarChart3, Download, TrendingUp } from "lucide-react";
+import { LogOut, Search, BarChart3, Download, TrendingUp, AlertCircle } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,9 @@ import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { ComplaintHeatmap } from "@/components/ComplaintHeatmap";
 import { exportToCSV, exportToPDF } from "@/utils/exportUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isComplaintOverdue, getOverdueHours } from "@/utils/slaTimer";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Complaint {
   id: string;
@@ -25,7 +28,10 @@ interface Complaint {
   urgency: "low" | "medium" | "high" | "urgent";
   status: "open" | "in_progress" | "resolved";
   created_at: string;
+  updated_at: string;
+  resolved_at: string | null;
   student_id: string;
+  starred: boolean;
   profiles: {
     full_name: string;
     email: string;
@@ -39,6 +45,8 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
+  const [selectedComplaints, setSelectedComplaints] = useState<Set<string>>(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -96,6 +104,80 @@ const AdminDashboard = () => {
     }
 
     setFilteredComplaints(filtered);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedComplaints.size === filteredComplaints.length) {
+      setSelectedComplaints(new Set());
+    } else {
+      setSelectedComplaints(new Set(filteredComplaints.map(c => c.id)));
+    }
+  };
+
+  const toggleSelectComplaint = (id: string) => {
+    const newSelected = new Set(selectedComplaints);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedComplaints(newSelected);
+  };
+
+  const handleBulkStatusUpdate = async (newStatus: "open" | "in_progress" | "resolved") => {
+    if (selectedComplaints.size === 0) return;
+    
+    setBulkActionLoading(true);
+    try {
+      const updates = Array.from(selectedComplaints).map(id =>
+        supabase
+          .from("complaints")
+          .update({ status: newStatus })
+          .eq("id", id)
+      );
+      
+      await Promise.all(updates);
+      
+      toast({
+        title: "Success",
+        description: `Updated ${selectedComplaints.size} complaint(s)`,
+      });
+      
+      setSelectedComplaints(new Set());
+      fetchComplaints();
+    } catch (error) {
+      console.error("Bulk update error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update complaints",
+        variant: "destructive",
+      });
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const handleStarToggle = async (id: string, currentStarred: boolean) => {
+    const { error } = await supabase
+      .from("complaints")
+      .update({ starred: !currentStarred })
+      .eq("id", id);
+
+    if (!error) {
+      fetchComplaints();
+    }
+  };
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    if (format === 'csv') {
+      exportToCSV(filteredComplaints as any);
+    } else {
+      exportToPDF(filteredComplaints as any);
+    }
+    toast({
+      title: "Export successful",
+      description: `Complaints exported as ${format.toUpperCase()}`,
+    });
   };
 
   const stats = {
@@ -189,6 +271,43 @@ const AdminDashboard = () => {
           </div>
 
           <TabsContent value="complaints" className="space-y-6">
+            {selectedComplaints.size > 0 && (
+              <Card className="bg-muted">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">
+                      {selectedComplaints.size} complaint(s) selected
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleBulkStatusUpdate("in_progress")}
+                        disabled={bulkActionLoading}
+                      >
+                        Mark In Progress
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleBulkStatusUpdate("resolved")}
+                        disabled={bulkActionLoading}
+                      >
+                        Mark Resolved
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setSelectedComplaints(new Set())}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Filters */}
             <Card>
               <CardContent className="pt-6">
