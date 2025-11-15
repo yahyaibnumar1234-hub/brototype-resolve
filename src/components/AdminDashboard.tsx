@@ -305,12 +305,17 @@ const AdminDashboard = () => {
 
           <TabsContent value="complaints" className="space-y-6">
             {selectedComplaints.size > 0 && (
-              <Card className="bg-muted">
+              <Card className="border-primary/50 bg-primary/5">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium">
-                      {selectedComplaints.size} complaint(s) selected
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+                        {selectedComplaints.size}
+                      </div>
+                      <p className="text-sm font-medium">
+                        {selectedComplaints.size === 1 ? 'complaint' : 'complaints'} selected
+                      </p>
+                    </div>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -344,17 +349,6 @@ const AdminDashboard = () => {
             {/* Filters */}
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedComplaints.size === filteredComplaints.length && filteredComplaints.length > 0}
-                      onCheckedChange={toggleSelectAll}
-                    />
-                    <span className="text-sm font-medium">
-                      Select All ({filteredComplaints.length})
-                    </span>
-                  </div>
-                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -381,7 +375,7 @@ const AdminDashboard = () => {
                       <SelectValue placeholder="Filter by urgency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Urgency</SelectItem>
+                      <SelectItem value="all">All Priority</SelectItem>
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -394,7 +388,9 @@ const AdminDashboard = () => {
 
             {/* Complaints List */}
             {loading ? (
-              <div className="text-center py-12">Loading...</div>
+              <div className="text-center py-12">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+              </div>
             ) : filteredComplaints.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -408,78 +404,112 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
-                {filteredComplaints.map((complaint) => {
-                  const isOverdue = isComplaintOverdue(
-                    complaint.created_at,
-                    complaint.status,
-                    complaint.resolved_at
-                  );
-                  const overdueHours = getOverdueHours(complaint.created_at);
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-muted/50 border-b">
+                        <tr>
+                          <th className="w-12 px-4 py-3">
+                            <Checkbox
+                              checked={selectedComplaints.size === filteredComplaints.length && filteredComplaints.length > 0}
+                              onCheckedChange={toggleSelectAll}
+                            />
+                          </th>
+                          <th className="text-left px-4 py-3 font-medium text-sm">Complaint</th>
+                          <th className="text-left px-4 py-3 font-medium text-sm">Student</th>
+                          <th className="text-left px-4 py-3 font-medium text-sm">Category</th>
+                          <th className="text-left px-4 py-3 font-medium text-sm">Status</th>
+                          <th className="text-left px-4 py-3 font-medium text-sm">Priority</th>
+                          <th className="text-left px-4 py-3 font-medium text-sm">Submitted</th>
+                          <th className="text-right px-4 py-3 font-medium text-sm">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {filteredComplaints.map((complaint) => {
+                          const isOverdue = isComplaintOverdue(
+                            complaint.created_at,
+                            complaint.status,
+                            complaint.resolved_at
+                          );
+                          const overdueHours = getOverdueHours(complaint.created_at);
 
-                  return (
-                    <Card key={complaint.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="pt-6">
-                        <div className="flex items-start gap-4">
-                          <Checkbox
-                            checked={selectedComplaints.has(complaint.id)}
-                            onCheckedChange={() => toggleSelectComplaint(complaint.id)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h3 className="font-semibold text-lg">{complaint.title}</h3>
-                                  {isOverdue && (
-                                    <Badge variant="destructive" className="text-xs">
-                                      <AlertCircle className="h-3 w-3 mr-1" />
-                                      Overdue {Math.round(overdueHours)}h
-                                    </Badge>
-                                  )}
+                          return (
+                            <tr 
+                              key={complaint.id} 
+                              className="hover:bg-muted/30 transition-colors cursor-pointer"
+                              onClick={() => navigate(`/complaint/${complaint.id}`)}
+                            >
+                              <td className="px-4 py-4">
+                                <Checkbox
+                                  checked={selectedComplaints.has(complaint.id)}
+                                  onCheckedChange={() => toggleSelectComplaint(complaint.id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="flex items-start gap-2 max-w-md">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h3 className="font-semibold text-sm truncate">{complaint.title}</h3>
+                                      {isOverdue && (
+                                        <Badge variant="destructive" className="text-xs shrink-0">
+                                          <AlertCircle className="h-3 w-3 mr-1" />
+                                          {Math.round(overdueHours)}h
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground line-clamp-2">
+                                      {complaint.description}
+                                    </p>
+                                  </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  By {complaint.profiles?.full_name || 'Unknown Student'} •{" "}
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="text-sm font-medium">{complaint.profiles?.full_name || 'Unknown'}</div>
+                                <div className="text-xs text-muted-foreground">{complaint.profiles?.email}</div>
+                              </td>
+                              <td className="px-4 py-4">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted capitalize">
+                                  {complaint.category}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4">
+                                <StatusBadge status={complaint.status} />
+                              </td>
+                              <td className="px-4 py-4">
+                                <UrgencyBadge urgency={complaint.urgency} />
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="text-sm text-muted-foreground">
                                   {formatDistanceToNow(new Date(complaint.created_at), {
                                     addSuffix: true,
                                   })}
-                                </p>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleMarkAsSpam(complaint.student_id, complaint.profiles?.full_name || 'User')}
-                                >
-                                  <Flag className="h-4 w-4 mr-1" />
-                                  Mark as Spam
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => navigate(`/complaint/${complaint.id}`)}
-                                >
-                                  View Details
-                                </Button>
-                              </div>
-                            </div>
-                            <p className="text-muted-foreground line-clamp-2 mb-3">
-                              {complaint.description}
-                            </p>
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-medium capitalize px-2 py-1 bg-muted rounded">
-                                {complaint.category}
-                              </span>
-                              <StatusBadge status={complaint.status} />
-                              <UrgencyBadge urgency={complaint.urgency} />
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMarkAsSpam(complaint.student_id, complaint.profiles?.full_name || 'User');
+                                    }}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Flag className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
