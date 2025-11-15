@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Search, BarChart3, Download, TrendingUp, AlertCircle } from "lucide-react";
+import { LogOut, Search, BarChart3, Download, TrendingUp, AlertCircle, Flag } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +60,13 @@ const AdminDashboard = () => {
   }, [complaints, searchQuery, statusFilter, urgencyFilter]);
 
   const fetchComplaints = async () => {
+    // Fetch spam users first
+    const { data: spamUsers } = await supabase
+      .from("spam_users")
+      .select("user_id");
+    
+    const spamUserIds = new Set(spamUsers?.map(s => s.user_id) || []);
+
     const { data, error } = await supabase
       .from("complaints")
       .select(`
@@ -78,7 +85,9 @@ const AdminDashboard = () => {
         variant: "destructive",
       });
     } else {
-      setComplaints(data || []);
+      // Filter out spam users' complaints
+      const filteredData = (data || []).filter(c => !spamUserIds.has(c.student_id));
+      setComplaints(filteredData);
     }
     setLoading(false);
   };
@@ -164,6 +173,30 @@ const AdminDashboard = () => {
       .eq("id", id);
 
     if (!error) {
+      fetchComplaints();
+    }
+  };
+
+  const handleMarkAsSpam = async (userId: string, userName: string) => {
+    const { error } = await supabase
+      .from("spam_users")
+      .insert([{ 
+        user_id: userId,
+        marked_by: (await supabase.auth.getUser()).data.user?.id || '',
+        reason: "Marked as spam by admin"
+      }]);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark user as spam",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "User Marked as Spam",
+        description: `${userName}'s complaints will no longer appear in the dashboard`,
+      });
       fetchComplaints();
     }
   };
@@ -300,7 +333,7 @@ const AdminDashboard = () => {
                         variant="ghost"
                         onClick={() => setSelectedComplaints(new Set())}
                       >
-                        Clear
+                        Cancel
                       </Button>
                     </div>
                   </div>
@@ -412,13 +445,23 @@ const AdminDashboard = () => {
                                   })}
                                 </p>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => navigate(`/complaint/${complaint.id}`)}
-                              >
-                                View Details
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleMarkAsSpam(complaint.student_id, complaint.profiles?.full_name || 'User')}
+                                >
+                                  <Flag className="h-4 w-4 mr-1" />
+                                  Mark as Spam
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => navigate(`/complaint/${complaint.id}`)}
+                                >
+                                  View Details
+                                </Button>
+                              </div>
                             </div>
                             <p className="text-muted-foreground line-clamp-2 mb-3">
                               {complaint.description}
