@@ -1,100 +1,113 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Wifi, Home, DollarSign, Users } from "lucide-react";
+import { Zap, Wifi, Laptop, Home, Users, Wind } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Template {
   id: string;
   title: string;
+  description: string;
   category: string;
   urgency: string;
-  description: string;
-  icon: React.ReactNode;
 }
-
-const templates: Template[] = [
-  {
-    id: "mentor",
-    title: "Mentor Issue",
-    category: "mentorship",
-    urgency: "medium",
-    description: "I need assistance with mentor-related concerns including guidance, feedback, or communication issues.",
-    icon: <Users className="h-5 w-5" />,
-  },
-  {
-    id: "facilities",
-    title: "Facilities Issue",
-    category: "facilities",
-    urgency: "medium",
-    description: "There is an issue with the facilities such as classrooms, equipment, or infrastructure that needs attention.",
-    icon: <Home className="h-5 w-5" />,
-  },
-  {
-    id: "technical",
-    title: "Technical Issue",
-    category: "technical",
-    urgency: "high",
-    description: "I am experiencing technical problems with internet connectivity, systems, or access to learning resources.",
-    icon: <Wifi className="h-5 w-5" />,
-  },
-  {
-    id: "fees",
-    title: "Fee-Related Issue",
-    category: "other",
-    urgency: "medium",
-    description: "I have a query or concern regarding fees, payments, billing, or refunds.",
-    icon: <DollarSign className="h-5 w-5" />,
-  },
-  {
-    id: "hostel",
-    title: "Hostel Issue",
-    category: "other",
-    urgency: "medium",
-    description: "There is an issue with hostel accommodation, facilities, or related services that requires resolution.",
-    icon: <Home className="h-5 w-5" />,
-  },
-];
 
 interface ComplaintTemplatesProps {
-  onSelectTemplate: (template: Omit<Template, "id" | "icon">) => void;
+  onSelectTemplate: (template: Omit<Template, 'id'>) => void;
 }
 
+const iconMap: Record<string, any> = {
+  'Wi-Fi Not Working': Wifi,
+  'Laptop Issue': Laptop,
+  'Hostel Maintenance': Home,
+  'Mentor Not Available': Users,
+  'Classroom AC Not Working': Wind,
+};
+
 export const ComplaintTemplates = ({ onSelectTemplate }: ComplaintTemplatesProps) => {
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    const { data, error } = await supabase
+      .from('complaint_templates')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load templates",
+        variant: "destructive",
+      });
+    } else {
+      setTemplates(data || []);
+    }
+    setLoading(false);
+  };
+
+  const handleSelectTemplate = (template: Template) => {
+    onSelectTemplate({
+      title: template.title,
+      description: template.description,
+      category: template.category,
+      urgency: template.urgency,
+    });
+    toast({
+      title: "Template Applied",
+      description: "Quick complaint template loaded successfully",
+    });
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Quick Templates</h3>
+        <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-primary" />
+          One-Tap Quick Complaints
+        </h3>
         <p className="text-sm text-muted-foreground">
-          Start with a template and customize it to your needs
+          Submit in seconds with pre-made templates
         </p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {templates.map((template) => (
-          <Card
-            key={template.id}
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() =>
-              onSelectTemplate({
-                title: template.title,
-                category: template.category,
-                urgency: template.urgency,
-                description: template.description,
-              })
-            }
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                {template.icon}
-                <CardTitle className="text-base">{template.title}</CardTitle>
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {templates.map((template) => {
+          const Icon = iconMap[template.title] || Zap;
+          return (
+            <Button
+              key={template.id}
+              variant="outline"
+              className="h-auto py-4 px-4 flex flex-col items-start gap-2 hover:bg-primary/5 hover:border-primary transition-all"
+              onClick={() => handleSelectTemplate(template)}
+            >
+              <div className="flex items-center gap-2 w-full">
+                <Icon className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-sm">{template.title}</span>
               </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="text-xs text-muted-foreground text-left line-clamp-2">
                 {template.description}
               </p>
-            </CardContent>
-          </Card>
-        ))}
+            </Button>
+          );
+        })}
       </div>
     </div>
   );

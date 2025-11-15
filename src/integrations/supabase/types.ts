@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_feed: {
+        Row: {
+          action_type: string
+          complaint_id: string | null
+          created_at: string | null
+          description: string
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          complaint_id?: string | null
+          created_at?: string | null
+          description: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          complaint_id?: string | null
+          created_at?: string | null
+          description?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_feed_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attachments: {
         Row: {
           complaint_id: string
@@ -211,11 +249,48 @@ export type Database = {
           },
         ]
       }
+      complaint_templates: {
+        Row: {
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at: string | null
+          created_by: string | null
+          description: string
+          id: string
+          is_active: boolean | null
+          title: string
+          urgency: Database["public"]["Enums"]["complaint_urgency"]
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          id?: string
+          is_active?: boolean | null
+          title: string
+          urgency?: Database["public"]["Enums"]["complaint_urgency"]
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          urgency?: Database["public"]["Enums"]["complaint_urgency"]
+        }
+        Relationships: []
+      }
       complaints: {
         Row: {
+          archived: boolean | null
+          archived_at: string | null
           assigned_to: string | null
           category: Database["public"]["Enums"]["complaint_category"]
           created_at: string | null
+          custom_status_id: string | null
+          deadline: string | null
           description: string
           id: string
           is_anonymous: boolean | null
@@ -228,9 +303,13 @@ export type Database = {
           urgency: Database["public"]["Enums"]["complaint_urgency"]
         }
         Insert: {
+          archived?: boolean | null
+          archived_at?: string | null
           assigned_to?: string | null
           category: Database["public"]["Enums"]["complaint_category"]
           created_at?: string | null
+          custom_status_id?: string | null
+          deadline?: string | null
           description: string
           id?: string
           is_anonymous?: boolean | null
@@ -243,9 +322,13 @@ export type Database = {
           urgency?: Database["public"]["Enums"]["complaint_urgency"]
         }
         Update: {
+          archived?: boolean | null
+          archived_at?: string | null
           assigned_to?: string | null
           category?: Database["public"]["Enums"]["complaint_category"]
           created_at?: string | null
+          custom_status_id?: string | null
+          deadline?: string | null
           description?: string
           id?: string
           is_anonymous?: boolean | null
@@ -266,6 +349,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "complaints_custom_status_id_fkey"
+            columns: ["custom_status_id"]
+            isOneToOne: false
+            referencedRelation: "custom_statuses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "complaints_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
@@ -273,6 +363,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      custom_statuses: {
+        Row: {
+          color: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
       }
       private_notes: {
         Row: {
