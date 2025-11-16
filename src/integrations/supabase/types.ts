@@ -213,6 +213,45 @@ export type Database = {
           },
         ]
       }
+      complaint_relations: {
+        Row: {
+          complaint_id: string
+          created_at: string | null
+          id: string
+          related_complaint_id: string
+          similarity_score: number | null
+        }
+        Insert: {
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          related_complaint_id: string
+          similarity_score?: number | null
+        }
+        Update: {
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          related_complaint_id?: string
+          similarity_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_relations_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaint_relations_related_complaint_id_fkey"
+            columns: ["related_complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaint_tags: {
         Row: {
           complaint_id: string
@@ -293,8 +332,14 @@ export type Database = {
           deadline: string | null
           description: string
           id: string
+          importance_type: string | null
           is_anonymous: boolean | null
+          is_auto_title: boolean | null
+          is_spam_flagged: boolean | null
+          mood: string | null
           resolved_at: string | null
+          severity_score: number | null
+          spam_confidence: number | null
           starred: boolean | null
           status: Database["public"]["Enums"]["complaint_status"]
           student_id: string
@@ -312,8 +357,14 @@ export type Database = {
           deadline?: string | null
           description: string
           id?: string
+          importance_type?: string | null
           is_anonymous?: boolean | null
+          is_auto_title?: boolean | null
+          is_spam_flagged?: boolean | null
+          mood?: string | null
           resolved_at?: string | null
+          severity_score?: number | null
+          spam_confidence?: number | null
           starred?: boolean | null
           status?: Database["public"]["Enums"]["complaint_status"]
           student_id: string
@@ -331,8 +382,14 @@ export type Database = {
           deadline?: string | null
           description?: string
           id?: string
+          importance_type?: string | null
           is_anonymous?: boolean | null
+          is_auto_title?: boolean | null
+          is_spam_flagged?: boolean | null
+          mood?: string | null
           resolved_at?: string | null
+          severity_score?: number | null
+          spam_confidence?: number | null
           starred?: boolean | null
           status?: Database["public"]["Enums"]["complaint_status"]
           student_id?: string

@@ -18,6 +18,8 @@ import { TagManager } from "@/components/TagManager";
 import { AISuggestions } from "@/components/AISuggestions";
 import { ComplaintSummary } from "@/components/ComplaintSummary";
 import { ResponseTemplates } from "@/components/ResponseTemplates";
+import { AIDraftReply } from "@/components/AIDraftReply";
+import { RelatedComplaints } from "@/components/RelatedComplaints";
 
 interface Attachment {
   id: string;
@@ -396,14 +398,26 @@ const ComplaintDetail = () => {
           </Card>
 
           {isAdmin && (
-            <ResponseTemplates onSelectTemplate={(template) => setNewComment(template)} />
+            <div className="space-y-2">
+              <AIDraftReply 
+                complaint={complaint}
+                onReplyGenerated={(reply) => setNewComment(reply)}
+              />
+              <ResponseTemplates onSelectTemplate={(template) => setNewComment(template)} />
+            </div>
           )}
         </div>
 
         {isAdmin && complaint && (
-          <div className="grid gap-6 md:grid-cols-2">
-            <ComplaintSummary complaint={complaint} />
-            <AISuggestions complaint={complaint} />
+          <div className="mt-6 space-y-6">
+            <RelatedComplaints 
+              complaintId={complaint.id} 
+              category={complaint.category as "technical" | "facilities" | "curriculum" | "mentorship" | "other"} 
+            />
+            <div className="grid gap-6 md:grid-cols-2">
+              <ComplaintSummary complaint={complaint} />
+              <AISuggestions complaint={complaint} />
+            </div>
           </div>
         )}
       </main>
