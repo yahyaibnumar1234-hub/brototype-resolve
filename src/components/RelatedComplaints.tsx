@@ -5,6 +5,7 @@ import { Link } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { StatusBadge } from "./StatusBadge";
+import { Button } from "@/components/ui/button";
 
 interface RelatedComplaint {
   id: string;
@@ -79,23 +80,26 @@ export const RelatedComplaints = ({ complaintId, category }: RelatedComplaintsPr
       <CardContent>
         <div className="space-y-3">
           {relatedComplaints.map((complaint) => (
-            <div
+            <Button
               key={complaint.id}
+              variant="ghost"
+              className="w-full p-3 h-auto justify-start hover:border-primary hover:bg-accent/50 transition-all"
               onClick={() => navigate(`/complaint/${complaint.id}`)}
-              className="p-3 rounded-lg border hover:border-primary hover:bg-accent/50 cursor-pointer transition-all"
             >
-              <div className="flex items-start justify-between gap-2">
-                <h4 className="text-sm font-medium line-clamp-2 flex-1">
-                  {complaint.title}
-                </h4>
-                <StatusBadge status={complaint.status} />
+              <div className="w-full">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="text-sm font-medium line-clamp-2 flex-1 text-left">
+                    {complaint.title}
+                  </h4>
+                  <StatusBadge status={complaint.status} />
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline" className="text-xs">
+                    {complaint.category}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant="outline" className="text-xs">
-                  {complaint.category}
-                </Badge>
-              </div>
-            </div>
+            </Button>
           ))}
         </div>
       </CardContent>
