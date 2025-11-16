@@ -17,6 +17,10 @@ import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { useAICategory } from "@/hooks/useAICategory";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { MoodSelector } from "@/components/MoodSelector";
+import { SeveritySlider } from "@/components/SeveritySlider";
+import { ImportanceBadgeSelector } from "@/components/ImportanceBadgeSelector";
+import { AITitleGenerator } from "@/components/AITitleGenerator";
 
 const NewComplaint = () => {
   const [step, setStep] = useState(0);
@@ -27,6 +31,9 @@ const NewComplaint = () => {
   const [urgency, setUrgency] = useState("medium");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showTemplates, setShowTemplates] = useState(true);
+  const [mood, setMood] = useState<string>("");
+  const [severity, setSeverity] = useState<number>(5);
+  const [importance, setImportance] = useState<string>("");
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -102,6 +109,9 @@ const NewComplaint = () => {
         category: category as any,
         urgency: urgency as any,
         is_anonymous: isAnonymous,
+        mood: mood || null,
+        severity_score: severity,
+        importance_type: importance || null,
       }])
       .select()
       .single();
@@ -277,6 +287,11 @@ const NewComplaint = () => {
                     onChange={(e) => setTitle(e.target.value)}
                     maxLength={100}
                   />
+                  <AITitleGenerator 
+                    description={description}
+                    onTitleGenerated={setTitle}
+                    disabled={!description.trim()}
+                  />
                 </div>
 
                 {suggestedCategory && confidence > 50 && suggestedCategory !== category && (
@@ -359,6 +374,12 @@ const NewComplaint = () => {
                     </div>
                   )}
                 </div>
+
+                <MoodSelector value={mood} onChange={setMood} />
+
+                <SeveritySlider value={severity} onChange={setSeverity} />
+
+                <ImportanceBadgeSelector value={importance} onChange={setImportance} />
 
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
