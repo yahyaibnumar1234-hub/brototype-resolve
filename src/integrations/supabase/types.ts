@@ -336,6 +336,7 @@ export type Database = {
           is_anonymous: boolean | null
           is_auto_title: boolean | null
           is_spam_flagged: boolean | null
+          location: string | null
           mood: string | null
           resolved_at: string | null
           severity_score: number | null
@@ -346,6 +347,7 @@ export type Database = {
           title: string
           updated_at: string | null
           urgency: Database["public"]["Enums"]["complaint_urgency"]
+          viewed_by_admin: boolean | null
         }
         Insert: {
           archived?: boolean | null
@@ -361,6 +363,7 @@ export type Database = {
           is_anonymous?: boolean | null
           is_auto_title?: boolean | null
           is_spam_flagged?: boolean | null
+          location?: string | null
           mood?: string | null
           resolved_at?: string | null
           severity_score?: number | null
@@ -371,6 +374,7 @@ export type Database = {
           title: string
           updated_at?: string | null
           urgency?: Database["public"]["Enums"]["complaint_urgency"]
+          viewed_by_admin?: boolean | null
         }
         Update: {
           archived?: boolean | null
@@ -386,6 +390,7 @@ export type Database = {
           is_anonymous?: boolean | null
           is_auto_title?: boolean | null
           is_spam_flagged?: boolean | null
+          location?: string | null
           mood?: string | null
           resolved_at?: string | null
           severity_score?: number | null
@@ -396,6 +401,7 @@ export type Database = {
           title?: string
           updated_at?: string | null
           urgency?: Database["public"]["Enums"]["complaint_urgency"]
+          viewed_by_admin?: boolean | null
         }
         Relationships: [
           {
