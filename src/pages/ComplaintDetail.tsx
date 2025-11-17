@@ -97,6 +97,14 @@ const ComplaintDetail = () => {
       navigate("/dashboard");
     } else {
       setComplaint(data);
+      
+      // Mark as viewed by admin
+      if (isAdmin && !data.viewed_by_admin) {
+        await supabase
+          .from("complaints")
+          .update({ viewed_by_admin: true })
+          .eq("id", id);
+      }
     }
     setLoading(false);
   };

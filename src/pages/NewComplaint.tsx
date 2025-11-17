@@ -15,12 +15,14 @@ import { Loader2, ArrowLeft, ArrowRight, Sparkles, Save, ImagePlus, X } from "lu
 import { ComplaintTemplates } from "@/components/ComplaintTemplates";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { useAICategory } from "@/hooks/useAICategory";
-import { usePhotoUpload } from "@/hooks/usePhotoUpload";
+import { useMultiPhotoUpload } from "@/hooks/useMultiPhotoUpload";
+import { MultiPhotoUpload } from "@/components/MultiPhotoUpload";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { MoodSelector } from "@/components/MoodSelector";
 import { SeveritySlider } from "@/components/SeveritySlider";
 import { ImportanceBadgeSelector } from "@/components/ImportanceBadgeSelector";
 import { AITitleGenerator } from "@/components/AITitleGenerator";
+import { LocationSelector } from "@/components/LocationSelector";
 
 const NewComplaint = () => {
   const [step, setStep] = useState(0);
@@ -34,6 +36,7 @@ const NewComplaint = () => {
   const [mood, setMood] = useState<string>("");
   const [severity, setSeverity] = useState<number>(5);
   const [importance, setImportance] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -48,8 +51,8 @@ const NewComplaint = () => {
   // AI category detection
   const { suggestedCategory, confidence } = useAICategory(title + " " + description);
 
-  // Photo upload
-  const { photo, photoPreview, uploading, handlePhotoSelect, uploadPhoto, removePhoto } = usePhotoUpload();
+  // Multi-photo upload
+  const { photos, uploading, handlePhotoSelect, removePhoto, uploadPhotos, clearPhotos } = useMultiPhotoUpload();
 
   // Load existing draft on mount
   useEffect(() => {
@@ -112,6 +115,7 @@ const NewComplaint = () => {
         mood: mood || null,
         severity_score: severity,
         importance_type: importance || null,
+        location: location || null,
       }])
       .select()
       .single();
@@ -126,9 +130,9 @@ const NewComplaint = () => {
       return;
     }
 
-    // Upload photo if exists
-    if (photo && data) {
-      await uploadPhoto(data.id, user?.id as string);
+    // Upload photos if exist
+    if (photos.length > 0 && data) {
+      await uploadPhotos(data.id, user?.id as string);
     }
 
     await clearDraft();
@@ -330,50 +334,15 @@ const NewComplaint = () => {
                   </p>
                 </div>
 
-                {/* Photo Upload Section */}
-                <div className="space-y-2">
-                  <Label>Attach Photo (Optional)</Label>
-                  {!photoPreview ? (
-                    <div>
-                      <input
-                        type="file"
-                        id="photo-upload"
-                        accept="image/jpeg,image/jpg,image/png"
-                        className="hidden"
-                        onChange={handlePhotoSelect}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => document.getElementById("photo-upload")?.click()}
-                      >
-                        <ImagePlus className="mr-2 h-4 w-4" />
-                        Add Photo
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        JPG, PNG only. Max 5MB
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <img
-                        src={photoPreview}
-                        alt="Preview"
-                        className="w-full h-48 object-cover rounded-lg border"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-2 right-2"
-                        onClick={removePhoto}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                {/* Multi-Photo Upload Section */}
+                <MultiPhotoUpload
+                  photos={photos}
+                  onPhotoSelect={handlePhotoSelect}
+                  onRemovePhoto={removePhoto}
+                  uploading={uploading}
+                />
+
+                <LocationSelector value={location} onChange={setLocation} />
 
                 <MoodSelector value={mood} onChange={setMood} />
 
@@ -411,14 +380,25 @@ const NewComplaint = () => {
                     <Label className="text-muted-foreground">Description</Label>
                     <p className="whitespace-pre-wrap">{description}</p>
                   </div>
-                  {photoPreview && (
+                  {location && (
                     <div>
-                      <Label className="text-muted-foreground">Attached Photo</Label>
-                      <img
-                        src={photoPreview}
-                        alt="Complaint attachment"
-                        className="mt-2 w-full max-h-64 object-cover rounded-lg border"
-                      />
+                      <Label className="text-muted-foreground">Location</Label>
+                      <p className="font-medium capitalize">{location.replace('-', ' ')}</p>
+                    </div>
+                  )}
+                  {photos.length > 0 && (
+                    <div>
+                      <Label className="text-muted-foreground">Attached Photos</Label>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        {photos.map((photo, index) => (
+                          <img
+                            key={index}
+                            src={photo.preview}
+                            alt={`Attachment ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border"
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
