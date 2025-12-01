@@ -89,49 +89,56 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-foreground">My Complaints</h1>
-          <div className="flex gap-2">
-            <ThemeToggle />
-            <Button onClick={() => navigate("/complaint/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Complaint
-            </Button>
-            <Button variant="ghost" onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
+      <header className="border-b glass-card sticky top-0 z-50 backdrop-blur-xl">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h1 className="text-2xl font-bold text-foreground">My Complaints</h1>
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <ThemeToggle />
+              <Button 
+                onClick={() => navigate("/complaint/new")}
+                className="flex-1 sm:flex-none"
+                variant="neon"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Complaint
+              </Button>
+              <Button variant="ghost" onClick={signOut} className="flex-1 sm:flex-none">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
         {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
+        <Card className="mb-6 animate-fade-in glass-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Filter className="h-5 w-5 text-primary" />
               Filters
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Search</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search</label>
                 <Input
                   placeholder="Search by title or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  className="glass-input"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Status</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="glass-input">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50 bg-card border-border backdrop-blur-xl">
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="open">Open</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
@@ -139,13 +146,13 @@ const StudentDashboard = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Category</label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="glass-input">
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50 bg-card border-border backdrop-blur-xl">
                     <SelectItem value="all">All Categories</SelectItem>
                     <SelectItem value="technical">Technical</SelectItem>
                     <SelectItem value="facilities">Facilities</SelectItem>
@@ -161,23 +168,27 @@ const StudentDashboard = () => {
         </Card>
 
         {loading ? (
-          <div className="text-center py-12">Loading...</div>
-        ) : filteredComplaints.length === 0 && complaints.length === 0 ? (
-          <Card>
+          <Card className="animate-fade-in glass-card">
             <CardContent className="py-12 text-center">
-              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <div className="animate-shimmer">Loading...</div>
+            </CardContent>
+          </Card>
+        ) : filteredComplaints.length === 0 && complaints.length === 0 ? (
+          <Card className="animate-fade-in glass-card">
+            <CardContent className="py-12 text-center">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-float" />
               <h3 className="text-lg font-semibold mb-2">No complaints yet</h3>
               <p className="text-muted-foreground mb-4">
                 Submit your first complaint to get started
               </p>
-              <Button onClick={() => navigate("/complaint/new")}>
+              <Button onClick={() => navigate("/complaint/new")} variant="neon">
                 <Plus className="h-4 w-4 mr-2" />
                 New Complaint
               </Button>
             </CardContent>
           </Card>
         ) : filteredComplaints.length === 0 ? (
-          <Card>
+          <Card className="animate-fade-in glass-card">
             <CardContent className="py-12 text-center">
               <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No complaints found</h3>
@@ -197,35 +208,38 @@ const StudentDashboard = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {filteredComplaints.map((complaint) => (
+          <div className="grid gap-4 sm:gap-6">
+            {filteredComplaints.map((complaint, index) => (
               <Card
                 key={complaint.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
+                className="glass-card cursor-pointer hover:scale-[1.02] transition-all duration-300 animate-fade-in hover:shadow-glow"
+                style={{ animationDelay: `${index * 50}ms` }}
                 onClick={() => navigate(`/complaint/${complaint.id}`)}
               >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{complaint.title}</CardTitle>
-                      <CardDescription className="mt-1">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base sm:text-lg truncate">
+                        {complaint.title}
+                      </CardTitle>
+                      <CardDescription className="mt-1 text-xs sm:text-sm">
                         {formatDistanceToNow(new Date(complaint.created_at), {
                           addSuffix: true,
                         })}
                       </CardDescription>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                       <StatusBadge status={complaint.status} />
                       <UrgencyBadge urgency={complaint.urgency} />
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground line-clamp-2">
+                  <p className="text-muted-foreground line-clamp-2 text-sm mb-3">
                     {complaint.description}
                   </p>
-                  <div className="mt-2">
-                    <span className="text-sm font-medium capitalize">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-medium capitalize px-2 py-1 rounded-full bg-primary/10 text-primary">
                       {complaint.category}
                     </span>
                   </div>
