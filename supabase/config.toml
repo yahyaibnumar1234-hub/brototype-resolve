@@ -1,1 +1,16 @@
 project_id = "biypuidutptnvnjclevt"
+
+[functions.ai-assistant]
+verify_jwt = false
+
+[functions.detect-spam]
+verify_jwt = false
+
+[functions.draft-reply]
+verify_jwt = false
+
+[functions.generate-title]
+verify_jwt = false
+
+[functions.transcribe-audio]
+verify_jwt = false
