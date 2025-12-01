@@ -9,19 +9,19 @@ interface UrgencyBadgeProps {
 const urgencyConfig = {
   low: {
     label: "Low",
-    className: "bg-urgency-low/10 text-urgency-low border-urgency-low/20",
+    className: "bg-urgency-low/15 text-urgency-low border-urgency-low/30 shadow-sm backdrop-blur-md font-semibold",
   },
   medium: {
     label: "Medium",
-    className: "bg-urgency-medium/10 text-urgency-medium border-urgency-medium/20",
+    className: "bg-urgency-medium/15 text-urgency-medium border-urgency-medium/30 shadow-sm backdrop-blur-md font-semibold",
   },
   high: {
     label: "High",
-    className: "bg-urgency-high/10 text-urgency-high border-urgency-high/20",
+    className: "bg-urgency-high/15 text-urgency-high border-urgency-high/30 shadow-sm backdrop-blur-md font-semibold",
   },
   urgent: {
     label: "Urgent",
-    className: "bg-urgency-urgent/10 text-urgency-urgent border-urgency-urgent/20",
+    className: "bg-urgency-urgent/15 text-urgency-urgent border-urgency-urgent/30 shadow-sm backdrop-blur-md font-semibold animate-glow",
   },
 };
 
