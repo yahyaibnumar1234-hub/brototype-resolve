@@ -19,7 +19,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isComplaintOverdue, getOverdueHours } from "@/utils/slaTimer";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-
 interface Complaint {
   id: string;
   title: string;
@@ -37,7 +36,6 @@ interface Complaint {
     email: string;
   };
 }
-
 const AdminDashboard = () => {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [filteredComplaints, setFilteredComplaints] = useState<Complaint[]>([]);
@@ -47,42 +45,42 @@ const AdminDashboard = () => {
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [selectedComplaints, setSelectedComplaints] = useState<Set<string>>(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
-  const { signOut } = useAuth();
+  const {
+    signOut
+  } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     fetchComplaints();
   }, []);
-
   useEffect(() => {
     filterComplaints();
   }, [complaints, searchQuery, statusFilter, urgencyFilter]);
-
   const fetchComplaints = async () => {
     // Fetch spam users first
-    const { data: spamUsers } = await supabase
-      .from("spam_users")
-      .select("user_id");
-    
+    const {
+      data: spamUsers
+    } = await supabase.from("spam_users").select("user_id");
     const spamUserIds = new Set(spamUsers?.map(s => s.user_id) || []);
-
-    const { data, error } = await supabase
-      .from("complaints")
-      .select(`
+    const {
+      data,
+      error
+    } = await supabase.from("complaints").select(`
         *,
         profiles!complaints_student_id_fkey (
           full_name,
           email
         )
-      `)
-      .order("created_at", { ascending: false });
-
+      `).order("created_at", {
+      ascending: false
+    });
     if (error) {
       toast({
         title: "Error",
         description: "Failed to load complaints",
-        variant: "destructive",
+        variant: "destructive"
       });
     } else {
       // Filter out spam users' complaints
@@ -91,30 +89,19 @@ const AdminDashboard = () => {
     }
     setLoading(false);
   };
-
   const filterComplaints = () => {
     let filtered = [...complaints];
-
     if (searchQuery) {
-      filtered = filtered.filter(
-        (c) =>
-          c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      filtered = filtered.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()) || c.description.toLowerCase().includes(searchQuery.toLowerCase()) || c.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()));
     }
-
     if (statusFilter !== "all") {
-      filtered = filtered.filter((c) => c.status === statusFilter);
+      filtered = filtered.filter(c => c.status === statusFilter);
     }
-
     if (urgencyFilter !== "all") {
-      filtered = filtered.filter((c) => c.urgency === urgencyFilter);
+      filtered = filtered.filter(c => c.urgency === urgencyFilter);
     }
-
     setFilteredComplaints(filtered);
   };
-
   const toggleSelectAll = () => {
     if (selectedComplaints.size === filteredComplaints.length) {
       setSelectedComplaints(new Set());
@@ -122,7 +109,6 @@ const AdminDashboard = () => {
       setSelectedComplaints(new Set(filteredComplaints.map(c => c.id)));
     }
   };
-
   const toggleSelectComplaint = (id: string) => {
     const newSelected = new Set(selectedComplaints);
     if (newSelected.has(id)) {
@@ -132,26 +118,18 @@ const AdminDashboard = () => {
     }
     setSelectedComplaints(newSelected);
   };
-
   const handleBulkStatusUpdate = async (newStatus: "open" | "in_progress" | "resolved") => {
     if (selectedComplaints.size === 0) return;
-    
     setBulkActionLoading(true);
     try {
-      const updates = Array.from(selectedComplaints).map(id =>
-        supabase
-          .from("complaints")
-          .update({ status: newStatus })
-          .eq("id", id)
-      );
-      
+      const updates = Array.from(selectedComplaints).map(id => supabase.from("complaints").update({
+        status: newStatus
+      }).eq("id", id));
       await Promise.all(updates);
-      
       toast({
         title: "Success",
-        description: `Updated ${selectedComplaints.size} complaint(s)`,
+        description: `Updated ${selectedComplaints.size} complaint(s)`
       });
-      
       setSelectedComplaints(new Set());
       fetchComplaints();
     } catch (error) {
@@ -159,48 +137,44 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to update complaints",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setBulkActionLoading(false);
     }
   };
-
   const handleStarToggle = async (id: string, currentStarred: boolean) => {
-    const { error } = await supabase
-      .from("complaints")
-      .update({ starred: !currentStarred })
-      .eq("id", id);
-
+    const {
+      error
+    } = await supabase.from("complaints").update({
+      starred: !currentStarred
+    }).eq("id", id);
     if (!error) {
       fetchComplaints();
     }
   };
-
   const handleMarkAsSpam = async (userId: string, userName: string) => {
-    const { error } = await supabase
-      .from("spam_users")
-      .insert([{ 
-        user_id: userId,
-        marked_by: (await supabase.auth.getUser()).data.user?.id || '',
-        reason: "Marked as spam by admin"
-      }]);
-
+    const {
+      error
+    } = await supabase.from("spam_users").insert([{
+      user_id: userId,
+      marked_by: (await supabase.auth.getUser()).data.user?.id || '',
+      reason: "Marked as spam by admin"
+    }]);
     if (error) {
       toast({
         title: "Error",
         description: "Failed to mark user as spam",
-        variant: "destructive",
+        variant: "destructive"
       });
     } else {
       toast({
         title: "User Marked as Spam",
-        description: `${userName}'s complaints will no longer appear in the dashboard`,
+        description: `${userName}'s complaints will no longer appear in the dashboard`
       });
       fetchComplaints();
     }
   };
-
   const handleExport = async (format: 'csv' | 'pdf') => {
     if (format === 'csv') {
       exportToCSV(filteredComplaints as any);
@@ -209,22 +183,19 @@ const AdminDashboard = () => {
     }
     toast({
       title: "Export successful",
-      description: `Complaints exported as ${format.toUpperCase()}`,
+      description: `Complaints exported as ${format.toUpperCase()}`
     });
   };
-
   const stats = {
     total: complaints.length,
-    open: complaints.filter((c) => c.status === "open").length,
-    inProgress: complaints.filter((c) => c.status === "in_progress").length,
-    resolved: complaints.filter((c) => c.status === "resolved").length,
+    open: complaints.filter(c => c.status === "open").length,
+    inProgress: complaints.filter(c => c.status === "in_progress").length,
+    resolved: complaints.filter(c => c.status === "resolved").length
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground">Admin's Dashboard</h1>
           <div className="flex gap-2">
             <ThemeToggle />
             <Button variant="ghost" onClick={signOut}>
@@ -240,19 +211,19 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Total Complaints</CardDescription>
+              <CardDescription className="text-[#1b1b1b]">Total Complaints</CardDescription>
               <CardTitle className="text-3xl">{stats.total}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Open</CardDescription>
+            <CardHeader className="pb-2 border-primary">
+              <CardDescription className="text-[#242424]">Open</CardDescription>
               <CardTitle className="text-3xl text-status-open">{stats.open}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>In Progress</CardDescription>
+              <CardDescription className="text-[#191919]">In Progress</CardDescription>
               <CardTitle className="text-3xl text-status-inProgress">
                 {stats.inProgress}
               </CardTitle>
@@ -260,7 +231,7 @@ const AdminDashboard = () => {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Resolved</CardDescription>
+              <CardDescription className="text-[#1b1b1b]">Resolved</CardDescription>
               <CardTitle className="text-3xl text-status-resolved">
                 {stats.resolved}
               </CardTitle>
@@ -286,17 +257,11 @@ const AdminDashboard = () => {
             </TabsList>
             
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => exportToCSV(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.csv`)}
-              >
+              <Button variant="outline" onClick={() => exportToCSV(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.csv`)}>
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => exportToPDF(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.pdf`)}
-              >
+              <Button variant="outline" onClick={() => exportToPDF(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.pdf`)}>
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
               </Button>
@@ -304,8 +269,7 @@ const AdminDashboard = () => {
           </div>
 
           <TabsContent value="complaints" className="space-y-6">
-            {selectedComplaints.size > 0 && (
-              <Card className="border-primary/50 bg-primary/5">
+            {selectedComplaints.size > 0 && <Card className="border-primary/50 bg-primary/5">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -317,34 +281,19 @@ const AdminDashboard = () => {
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleBulkStatusUpdate("in_progress")}
-                        disabled={bulkActionLoading}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => handleBulkStatusUpdate("in_progress")} disabled={bulkActionLoading}>
                         Mark In Progress
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleBulkStatusUpdate("resolved")}
-                        disabled={bulkActionLoading}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => handleBulkStatusUpdate("resolved")} disabled={bulkActionLoading}>
                         Mark Resolved
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setSelectedComplaints(new Set())}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => setSelectedComplaints(new Set())}>
                         Cancel
                       </Button>
                     </div>
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
 
             {/* Filters */}
             <Card>
@@ -352,12 +301,7 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search complaints..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
+                    <Input placeholder="Search complaints..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
                   </div>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
@@ -387,34 +331,24 @@ const AdminDashboard = () => {
             </Card>
 
             {/* Complaints List */}
-            {loading ? (
-              <div className="text-center py-12">
+            {loading ? <div className="text-center py-12">
                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-              </div>
-            ) : filteredComplaints.length === 0 ? (
-              <Card>
+              </div> : filteredComplaints.length === 0 ? <Card>
                 <CardContent className="py-12 text-center">
                   <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No complaints found</h3>
                   <p className="text-muted-foreground">
-                    {searchQuery || statusFilter !== "all" || urgencyFilter !== "all"
-                      ? "Try adjusting your filters"
-                      : "No complaints have been submitted yet"}
+                    {searchQuery || statusFilter !== "all" || urgencyFilter !== "all" ? "Try adjusting your filters" : "No complaints have been submitted yet"}
                   </p>
                 </CardContent>
-              </Card>
-            ) : (
-              <Card>
+              </Card> : <Card>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-muted/50 border-b">
                         <tr>
                           <th className="w-12 px-4 py-3">
-                            <Checkbox
-                              checked={selectedComplaints.size === filteredComplaints.length && filteredComplaints.length > 0}
-                              onCheckedChange={toggleSelectAll}
-                            />
+                            <Checkbox checked={selectedComplaints.size === filteredComplaints.length && filteredComplaints.length > 0} onCheckedChange={toggleSelectAll} />
                           </th>
                           <th className="text-left px-4 py-3 font-medium text-sm">Complaint</th>
                           <th className="text-left px-4 py-3 font-medium text-sm">Student</th>
@@ -426,38 +360,22 @@ const AdminDashboard = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y">
-                        {filteredComplaints.map((complaint) => {
-                          const isOverdue = isComplaintOverdue(
-                            complaint.created_at,
-                            complaint.status,
-                            complaint.resolved_at
-                          );
-                          const overdueHours = getOverdueHours(complaint.created_at);
-
-                          return (
-                            <tr 
-                              key={complaint.id} 
-                              className="hover:bg-muted/30 transition-colors cursor-pointer"
-                              onClick={() => navigate(`/complaint/${complaint.id}`)}
-                            >
+                        {filteredComplaints.map(complaint => {
+                      const isOverdue = isComplaintOverdue(complaint.created_at, complaint.status, complaint.resolved_at);
+                      const overdueHours = getOverdueHours(complaint.created_at);
+                      return <tr key={complaint.id} className="hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => navigate(`/complaint/${complaint.id}`)}>
                               <td className="px-4 py-4">
-                                <Checkbox
-                                  checked={selectedComplaints.has(complaint.id)}
-                                  onCheckedChange={() => toggleSelectComplaint(complaint.id)}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
+                                <Checkbox checked={selectedComplaints.has(complaint.id)} onCheckedChange={() => toggleSelectComplaint(complaint.id)} onClick={e => e.stopPropagation()} />
                               </td>
                               <td className="px-4 py-4">
                                 <div className="flex items-start gap-2 max-w-md">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
                                       <h3 className="font-semibold text-sm truncate">{complaint.title}</h3>
-                                      {isOverdue && (
-                                        <Badge variant="destructive" className="text-xs shrink-0">
+                                      {isOverdue && <Badge variant="destructive" className="text-xs shrink-0">
                                           <AlertCircle className="h-3 w-3 mr-1" />
                                           {Math.round(overdueHours)}h
-                                        </Badge>
-                                      )}
+                                        </Badge>}
                                     </div>
                                     <p className="text-xs text-muted-foreground line-clamp-2">
                                       {complaint.description}
@@ -483,34 +401,27 @@ const AdminDashboard = () => {
                               <td className="px-4 py-4">
                                 <div className="text-sm text-muted-foreground">
                                   {formatDistanceToNow(new Date(complaint.created_at), {
-                                    addSuffix: true,
-                                  })}
+                              addSuffix: true
+                            })}
                                 </div>
                               </td>
                               <td className="px-4 py-4">
                                 <div className="flex items-center justify-end gap-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMarkAsSpam(complaint.student_id, complaint.profiles?.full_name || 'User');
-                                    }}
-                                    className="h-8 w-8 p-0"
-                                  >
+                                  <Button variant="ghost" size="sm" onClick={e => {
+                              e.stopPropagation();
+                              handleMarkAsSpam(complaint.student_id, complaint.profiles?.full_name || 'User');
+                            }} className="h-8 w-8 p-0 text-xl">
                                     <Flag className="h-4 w-4" />
                                   </Button>
                                 </div>
                               </td>
-                            </tr>
-                          );
-                        })}
+                            </tr>;
+                    })}
                       </tbody>
                     </table>
                   </div>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -522,8 +433,6 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default AdminDashboard;
