@@ -3,16 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare, Shield, TrendingUp } from "lucide-react";
-
 const Index = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+  return <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">Brototype</h1>
-          <Button onClick={() => navigate("/auth")}>
+          <h1 className="text-2xl font-bold text-[#bebebe]">Brototype</h1>
+          <Button onClick={() => navigate("/auth")} className="font-sans text-lg font-bold">
             Get Started
           </Button>
         </div>
@@ -20,13 +17,13 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold mb-4">
+          <h2 className="text-5xl mb-4 font-extrabold">
             Complaint Management System
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl max-w-2xl mx-auto text-[#929292]">
             A transparent and efficient platform for Brototype students to submit, track, and resolve complaints
           </p>
-          <Button size="lg" className="mt-8" onClick={() => navigate("/auth")}>
+          <Button size="lg" onClick={() => navigate("/auth")} className="mt-8 text-3xl">
             Login to Dashboard
           </Button>
         </div>
@@ -36,7 +33,7 @@ const Index = () => {
             <CardHeader>
               <MessageSquare className="h-12 w-12 text-primary mb-4" />
               <CardTitle>Easy Submission</CardTitle>
-              <CardDescription>
+              <CardDescription className="text-[#191919]">
                 Submit complaints quickly with detailed categorization and urgency levels
               </CardDescription>
             </CardHeader>
@@ -46,7 +43,7 @@ const Index = () => {
             <CardHeader>
               <Shield className="h-12 w-12 text-primary mb-4" />
               <CardTitle>Track Progress</CardTitle>
-              <CardDescription>
+              <CardDescription className="text-neutral-900">
                 Monitor your complaint status in real-time with transparent communication
               </CardDescription>
             </CardHeader>
@@ -56,15 +53,13 @@ const Index = () => {
             <CardHeader>
               <TrendingUp className="h-12 w-12 text-primary mb-4" />
               <CardTitle>Fast Resolution</CardTitle>
-              <CardDescription>
+              <CardDescription className="text-neutral-900">
                 Admins can efficiently manage and resolve issues with streamlined workflows
               </CardDescription>
             </CardHeader>
           </Card>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
