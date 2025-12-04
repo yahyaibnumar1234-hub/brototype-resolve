@@ -95,14 +95,14 @@ export const ComplaintTemplates = ({ onSelectTemplate }: ComplaintTemplatesProps
             <Button
               key={template.id}
               variant="outline"
-              className="h-auto py-4 px-4 flex flex-col items-start gap-2 hover:bg-primary/5 hover:border-primary transition-all"
+              className="h-auto min-h-[80px] py-4 px-4 flex flex-col items-start gap-2 hover:bg-primary/5 hover:border-primary transition-all overflow-hidden"
               onClick={() => handleSelectTemplate(template)}
             >
-              <div className="flex items-center gap-2 w-full">
-                <Icon className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-sm">{template.title}</span>
+              <div className="flex items-center gap-2 w-full shrink-0">
+                <Icon className="h-5 w-5 text-primary shrink-0" />
+                <span className="font-semibold text-sm truncate">{template.title}</span>
               </div>
-              <p className="text-xs text-muted-foreground text-left line-clamp-2">
+              <p className="text-xs text-muted-foreground text-left line-clamp-2 w-full break-words whitespace-normal">
                 {template.description}
               </p>
             </Button>
