@@ -28,9 +28,29 @@ serve(async (req) => {
       systemPrompt = 'You are a helpful assistant for a student complaint management system. Provide 3 practical solutions or suggestions based on the complaint.';
       userPrompt = `Provide 3 practical suggestions for this complaint:\n\nTitle: ${complaint.title}\nDescription: ${complaint.description}\nCategory: ${complaint.category}`;
     } else if (type === 'generate-description') {
-      const { title, category } = await req.json().then(() => ({ title: complaint.title, category: complaint.category })).catch(() => ({ title: complaint, category: '' }));
       systemPrompt = 'You are a helpful assistant for a student complaint management system. Generate a detailed 5-line description for a complaint based on the title provided. The description should be professional, clear, and explain the issue in detail. Do not include any headings or bullet points, just write 5 lines of natural text.';
-      userPrompt = `Generate a 5-line detailed description for this complaint title: "${complaint}"${category ? `\nCategory: ${category}` : ''}`;
+      userPrompt = `Generate a 5-line detailed description for this complaint title: "${complaint}"`;
+    } else if (type === 'format-complaint') {
+      systemPrompt = `You are a helpful assistant for a student complaint management system. Your job is to take rough, informal text from students and convert it into a well-formatted complaint.
+
+You MUST respond with a valid JSON object with these exact fields:
+- title: A clear, concise title (max 100 chars)
+- description: A professional, detailed description (5-7 sentences)
+- category: One of: technical, facilities, curriculum, mentorship, other
+- urgency: One of: low, medium, high, urgent (based on tone and content)
+- mood: One of: angry, frustrated, confused, calm, urgent (detected from text)
+
+Only output the JSON object, no additional text.`;
+      userPrompt = `Format this rough complaint text into a professional complaint:\n\n"${complaint}"`;
+    } else if (type === 'detect-mood') {
+      systemPrompt = 'You are an AI that detects the emotional tone of text. Respond with ONLY one word: angry, frustrated, confused, calm, or urgent.';
+      userPrompt = `Detect the mood of this text: "${complaint}"`;
+    } else if (type === 'smart-suggestion') {
+      systemPrompt = 'You are a helpful assistant that suggests solutions based on past resolved complaints. Provide a brief, actionable suggestion.';
+      userPrompt = `Based on this complaint, suggest a solution:\n\nTitle: ${complaint.title}\nDescription: ${complaint.description}\nCategory: ${complaint.category}`;
+    } else if (type === 'detect-spam') {
+      systemPrompt = 'You are a spam detection AI. Analyze the complaint and respond with a JSON object: { "isSpam": boolean, "confidence": number (0-100), "reason": string }. Only output JSON.';
+      userPrompt = `Analyze if this complaint is spam or fake:\n\nTitle: ${complaint.title}\nDescription: ${complaint.description}`;
     } else {
       throw new Error('Invalid type');
     }
