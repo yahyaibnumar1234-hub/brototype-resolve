@@ -27,6 +27,10 @@ serve(async (req) => {
     } else if (type === 'suggestions') {
       systemPrompt = 'You are a helpful assistant for a student complaint management system. Provide 3 practical solutions or suggestions based on the complaint.';
       userPrompt = `Provide 3 practical suggestions for this complaint:\n\nTitle: ${complaint.title}\nDescription: ${complaint.description}\nCategory: ${complaint.category}`;
+    } else if (type === 'generate-description') {
+      const { title, category } = await req.json().then(() => ({ title: complaint.title, category: complaint.category })).catch(() => ({ title: complaint, category: '' }));
+      systemPrompt = 'You are a helpful assistant for a student complaint management system. Generate a detailed 5-line description for a complaint based on the title provided. The description should be professional, clear, and explain the issue in detail. Do not include any headings or bullet points, just write 5 lines of natural text.';
+      userPrompt = `Generate a 5-line detailed description for this complaint title: "${complaint}"${category ? `\nCategory: ${category}` : ''}`;
     } else {
       throw new Error('Invalid type');
     }
