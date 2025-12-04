@@ -195,7 +195,7 @@ const AdminDashboard = () => {
   return <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-foreground">Admin's Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground px-0 my-0 font-serif text-center">Admin's Dashboard</h1>
           <div className="flex gap-2">
             <ThemeToggle />
             <Button variant="ghost" onClick={signOut}>
@@ -211,19 +211,19 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#1b1b1b]">Total Complaints</CardDescription>
+              <CardDescription className="text-[#878686]">Total Complaints</CardDescription>
               <CardTitle className="text-3xl">{stats.total}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2 border-primary">
-              <CardDescription className="text-[#242424]">Open</CardDescription>
+              <CardDescription className="text-[#7d7b7b]">Open</CardDescription>
               <CardTitle className="text-3xl text-status-open">{stats.open}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#191919]">In Progress</CardDescription>
+              <CardDescription className="text-[#7d7777]">In Progress</CardDescription>
               <CardTitle className="text-3xl text-status-inProgress">
                 {stats.inProgress}
               </CardTitle>
@@ -231,7 +231,7 @@ const AdminDashboard = () => {
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="text-[#1b1b1b]">Resolved</CardDescription>
+              <CardDescription className="text-[#878585]">Resolved</CardDescription>
               <CardTitle className="text-3xl text-status-resolved">
                 {stats.resolved}
               </CardTitle>
@@ -257,11 +257,11 @@ const AdminDashboard = () => {
             </TabsList>
             
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => exportToCSV(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.csv`)}>
+              <Button variant="outline" onClick={() => exportToCSV(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.csv`)} className="text-base">
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
-              <Button variant="outline" onClick={() => exportToPDF(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.pdf`)}>
+              <Button variant="outline" onClick={() => exportToPDF(complaints as any, `complaints-${new Date().toISOString().split('T')[0]}.pdf`)} className="text-base">
                 <Download className="h-4 w-4 mr-2" />
                 Export PDF
               </Button>
