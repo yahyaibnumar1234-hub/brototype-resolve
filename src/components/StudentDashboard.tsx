@@ -12,6 +12,8 @@ import { formatDistanceToNow } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { BookmarkButton } from "@/components/BookmarkButton";
+import { QRStatusCheck } from "@/components/QRStatusCheck";
 
 interface Complaint {
   id: string;
@@ -22,6 +24,7 @@ interface Complaint {
   status: "open" | "in_progress" | "resolved";
   created_at: string;
   updated_at: string;
+  starred: boolean;
 }
 
 const StudentDashboard = () => {
@@ -46,7 +49,7 @@ const StudentDashboard = () => {
   const fetchComplaints = async () => {
     const { data, error } = await supabase
       .from("complaints")
-      .select("*")
+      .select("id, title, description, category, urgency, status, created_at, updated_at, starred")
       .eq("student_id", user?.id)
       .order("created_at", { ascending: false });
 
@@ -242,6 +245,17 @@ const StudentDashboard = () => {
                     <span className="text-xs sm:text-sm font-medium capitalize px-2 py-1 rounded-full bg-primary/10 text-primary">
                       {complaint.category}
                     </span>
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <BookmarkButton
+                        complaintId={complaint.id}
+                        isBookmarked={complaint.starred || false}
+                        onToggle={() => fetchComplaints()}
+                      />
+                      <QRStatusCheck
+                        complaintId={complaint.id}
+                        title={complaint.title}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
