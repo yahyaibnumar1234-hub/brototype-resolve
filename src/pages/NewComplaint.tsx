@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, ArrowRight, Sparkles, Save, ImagePlus, X } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Sparkles, Save, ImagePlus, X, Wand2 } from "lucide-react";
 import { ComplaintTemplates } from "@/components/ComplaintTemplates";
 import { useAutoDraft } from "@/hooks/useAutoDraft";
 import { useAICategory } from "@/hooks/useAICategory";
@@ -24,6 +24,7 @@ import { ImportanceBadgeSelector } from "@/components/ImportanceBadgeSelector";
 import { AITitleGenerator } from "@/components/AITitleGenerator";
 import { AIDescriptionGenerator } from "@/components/AIDescriptionGenerator";
 import { LocationSelector } from "@/components/LocationSelector";
+import { AIComplaintHelper } from "@/components/AIComplaintHelper";
 
 const NewComplaint = () => {
   const [step, setStep] = useState(0);
@@ -34,6 +35,7 @@ const NewComplaint = () => {
   const [urgency, setUrgency] = useState("medium");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showTemplates, setShowTemplates] = useState(true);
+  const [showAIHelper, setShowAIHelper] = useState(false);
   const [mood, setMood] = useState<string>("");
   const [severity, setSeverity] = useState<number>(5);
   const [importance, setImportance] = useState<string>("");
@@ -89,6 +91,7 @@ const NewComplaint = () => {
     setCategory(template.category);
     setUrgency(template.urgency);
     setShowTemplates(false);
+    setShowAIHelper(false);
     setStep(1);
   };
 
@@ -231,17 +234,61 @@ const NewComplaint = () => {
           <CardContent>
             {showTemplates ? (
               <div className="space-y-4">
-                <ComplaintTemplates onSelectTemplate={handleTemplateSelect} />
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setShowTemplates(false);
-                    setStep(1);
-                  }}
-                >
-                  Skip Templates
-                </Button>
+                {showAIHelper ? (
+                  <>
+                    <AIComplaintHelper 
+                      onComplaintGenerated={(data) => {
+                        setTitle(data.title);
+                        setDescription(data.description);
+                        setCategory(data.category);
+                        setUrgency(data.urgency);
+                        if (data.mood) setMood(data.mood);
+                        setShowTemplates(false);
+                        setShowAIHelper(false);
+                        setStep(1);
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setShowAIHelper(false)}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back to Templates
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                      <Button
+                        variant="neon"
+                        className="gap-2 h-auto py-4"
+                        onClick={() => setShowAIHelper(true)}
+                      >
+                        <Wand2 className="h-5 w-5" />
+                        <div className="text-left">
+                          <div className="font-semibold">AI Helper</div>
+                          <div className="text-xs opacity-80">Type rough text, AI formats it</div>
+                        </div>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="gap-2 h-auto py-4"
+                        onClick={() => {
+                          setShowTemplates(false);
+                          setStep(1);
+                        }}
+                      >
+                        <ArrowRight className="h-5 w-5" />
+                        <div className="text-left">
+                          <div className="font-semibold">Manual Entry</div>
+                          <div className="text-xs opacity-80">Fill form step by step</div>
+                        </div>
+                      </Button>
+                    </div>
+                    <ComplaintTemplates onSelectTemplate={handleTemplateSelect} />
+                  </>
+                )}
               </div>
             ) : step === 1 ? (
               <div className="space-y-4">

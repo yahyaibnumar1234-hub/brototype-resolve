@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Search, BarChart3, Download, TrendingUp, AlertCircle, Flag } from "lucide-react";
+import { LogOut, Search, BarChart3, Download, TrendingUp, AlertCircle, Flag, Columns3 } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { ComplaintHeatmap } from "@/components/ComplaintHeatmap";
+import { KanbanBoard } from "@/components/KanbanBoard";
 import { exportToCSV, exportToPDF } from "@/utils/exportUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isComplaintOverdue, getOverdueHours } from "@/utils/slaTimer";
@@ -246,6 +247,10 @@ const AdminDashboard = () => {
                 <Search className="h-4 w-4 mr-2" />
                 Complaints
               </TabsTrigger>
+              <TabsTrigger value="kanban">
+                <Columns3 className="h-4 w-4 mr-2" />
+                Kanban
+              </TabsTrigger>
               <TabsTrigger value="analytics">
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Analytics
@@ -422,6 +427,13 @@ const AdminDashboard = () => {
                   </div>
                 </CardContent>
               </Card>}
+          </TabsContent>
+
+          <TabsContent value="kanban">
+            <KanbanBoard 
+              complaints={complaints as any} 
+              onStatusChange={fetchComplaints}
+            />
           </TabsContent>
 
           <TabsContent value="analytics">
