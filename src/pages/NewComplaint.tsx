@@ -25,6 +25,10 @@ import { AITitleGenerator } from "@/components/AITitleGenerator";
 import { AIDescriptionGenerator } from "@/components/AIDescriptionGenerator";
 import { LocationSelector } from "@/components/LocationSelector";
 import { AIComplaintHelper } from "@/components/AIComplaintHelper";
+import { RecentCategories } from "@/components/RecentCategories";
+import { UrgencyReasonInput } from "@/components/UrgencyReasonInput";
+import { PhotoProblemDetector } from "@/components/PhotoProblemDetector";
+import { CloudFileAttachment } from "@/components/CloudFileAttachment";
 
 const NewComplaint = () => {
   const [step, setStep] = useState(0);
@@ -40,6 +44,8 @@ const NewComplaint = () => {
   const [severity, setSeverity] = useState<number>(5);
   const [importance, setImportance] = useState<string>("");
   const [location, setLocation] = useState<string>("");
+  const [urgencyReason, setUrgencyReason] = useState<string>("");
+  const [cloudFiles, setCloudFiles] = useState<{ url: string; name: string }[]>([]);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -292,6 +298,12 @@ const NewComplaint = () => {
               </div>
             ) : step === 1 ? (
               <div className="space-y-4">
+                {/* Recent Categories */}
+                <RecentCategories 
+                  onSelect={setCategory} 
+                  currentCategory={category}
+                />
+
                 <div className="space-y-2">
                   <Label htmlFor="category">Category *</Label>
                   <Select value={category} onValueChange={setCategory}>
@@ -323,6 +335,13 @@ const NewComplaint = () => {
                   </Select>
                 </div>
 
+                {/* Urgency Reason Input */}
+                <UrgencyReasonInput
+                  urgency={urgency}
+                  value={urgencyReason}
+                  onChange={setUrgencyReason}
+                />
+
                 <Button onClick={handleNext} className="w-full">
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -330,6 +349,15 @@ const NewComplaint = () => {
               </div>
             ) : step === 2 ? (
               <div className="space-y-4">
+                {/* AI Photo Problem Detection */}
+                <PhotoProblemDetector
+                  onProblemDetected={(data) => {
+                    setTitle(data.problemType);
+                    setDescription(data.description);
+                    if (data.category) setCategory(data.category);
+                  }}
+                />
+
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input
@@ -391,12 +419,38 @@ const NewComplaint = () => {
                 </div>
 
                 {/* Multi-Photo Upload Section */}
-                <MultiPhotoUpload
-                  photos={photos}
-                  onPhotoSelect={handlePhotoSelect}
-                  onRemovePhoto={removePhoto}
-                  uploading={uploading}
-                />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Attachments</Label>
+                    <CloudFileAttachment
+                      onFileAttached={(url, name) => {
+                        setCloudFiles(prev => [...prev, { url, name }]);
+                      }}
+                    />
+                  </div>
+                  <MultiPhotoUpload
+                    photos={photos}
+                    onPhotoSelect={handlePhotoSelect}
+                    onRemovePhoto={removePhoto}
+                    uploading={uploading}
+                  />
+                  {cloudFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {cloudFiles.map((file, idx) => (
+                        <Badge key={idx} variant="secondary" className="gap-1">
+                          {file.name}
+                          <button
+                            type="button"
+                            onClick={() => setCloudFiles(prev => prev.filter((_, i) => i !== idx))}
+                            className="ml-1 hover:text-destructive"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <LocationSelector value={location} onChange={setLocation} />
 

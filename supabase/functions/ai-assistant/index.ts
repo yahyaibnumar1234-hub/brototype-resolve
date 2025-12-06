@@ -51,6 +51,17 @@ Only output the JSON object, no additional text.`;
     } else if (type === 'detect-spam') {
       systemPrompt = 'You are a spam detection AI. Analyze the complaint and respond with a JSON object: { "isSpam": boolean, "confidence": number (0-100), "reason": string }. Only output JSON.';
       userPrompt = `Analyze if this complaint is spam or fake:\n\nTitle: ${complaint.title}\nDescription: ${complaint.description}`;
+    } else if (type === 'detect-photo-problem') {
+      systemPrompt = `You are an AI that analyzes photos to detect problems in educational/campus settings.
+Analyze the image and respond with a JSON object:
+{
+  "problemType": "short description of the problem detected (e.g., Broken Chair, Damaged Equipment, Mess in Classroom)",
+  "description": "detailed description of what you see wrong",
+  "category": "one of: technical, facilities, curriculum, mentorship, other",
+  "confidence": number from 0-100 indicating how confident you are
+}
+Only output the JSON object.`;
+      userPrompt = `Analyze this image and detect any problems or issues visible.`;
     } else {
       throw new Error('Invalid type');
     }

@@ -20,6 +20,9 @@ import { ComplaintSummary } from "@/components/ComplaintSummary";
 import { ResponseTemplates } from "@/components/ResponseTemplates";
 import { AIDraftReply } from "@/components/AIDraftReply";
 import { RelatedComplaints } from "@/components/RelatedComplaints";
+import { ReportAgainButton } from "@/components/ReportAgainButton";
+import { ComplaintGrouping } from "@/components/ComplaintGrouping";
+import { AdminReplyReactions } from "@/components/AdminReplyReactions";
 interface Attachment {
   id: string;
   file_name: string;
@@ -279,13 +282,30 @@ const ComplaintDetail = () => {
                 <div className="bg-muted/50 rounded-lg p-4">
                   <h3 className="font-semibold mb-2">Not Satisfied with Resolution?</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    If you feel the issue wasn't fully resolved, you can reopen this complaint.
+                    If you feel the issue wasn't fully resolved, you can reopen this complaint or report it again.
                   </p>
-                  <Button variant="outline" onClick={handleReopenComplaint} disabled={submitting}>
-                    {submitting ? "Reopening..." : "Reopen Complaint"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleReopenComplaint} disabled={submitting}>
+                      {submitting ? "Reopening..." : "Reopen Complaint"}
+                    </Button>
+                    <ReportAgainButton originalComplaint={{
+                      id: complaint.id,
+                      title: complaint.title,
+                      description: complaint.description,
+                      category: complaint.category,
+                    }} />
+                  </div>
                 </div>
               </div>}
+
+            {!isAdmin && complaint.status !== "resolved" && (
+              <div className="pt-4 border-t flex gap-2">
+                <ComplaintGrouping 
+                  currentComplaintId={complaint.id}
+                  currentTitle={complaint.title}
+                />
+              </div>
+            )}
 
             {isAdmin && <div className="pt-4 border-t">
                 <label className="text-sm font-medium mb-2 block">
@@ -317,19 +337,28 @@ const ComplaintDetail = () => {
               {comments.length === 0 ? <p className="text-center text-muted-foreground py-4">
                   No comments yet. Be the first to comment!
                 </p> : <div className="space-y-4">
-                  {comments.map(comment => <div key={comment.id} className="border rounded-lg p-4 bg-muted/30">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold">
-                          {comment.profiles?.full_name || 'Unknown User'}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {format(new Date(comment.created_at), "PPp")}
-                        </span>
+                  {comments.map((comment, index) => {
+                    const isAdminReply = isAdmin ? false : index > 0 || comment.user_id !== user?.id;
+                    return (
+                      <div key={comment.id} className="border rounded-lg p-4 bg-muted/30">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-semibold">
+                            {comment.profiles?.full_name || 'Unknown User'}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {format(new Date(comment.created_at), "PPp")}
+                          </span>
+                        </div>
+                        <p className="whitespace-pre-wrap text-[#454545]">
+                          {comment.message}
+                        </p>
+                        {/* Show reactions for admin replies (when student is viewing) */}
+                        {!isAdmin && isAdminReply && (
+                          <AdminReplyReactions commentId={comment.id} />
+                        )}
                       </div>
-                      <p className="whitespace-pre-wrap text-[#454545]">
-                        {comment.message}
-                      </p>
-                    </div>)}
+                    );
+                  })}
                 </div>}
 
               <div className="pt-4 border-t">

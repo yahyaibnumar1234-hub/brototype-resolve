@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { QRStatusCheck } from "@/components/QRStatusCheck";
+import { QuickComplaintWidget } from "@/components/QuickComplaintWidget";
 
 interface Complaint {
   id: string;
@@ -262,6 +263,9 @@ const StudentDashboard = () => {
             ))}
           </div>
         )}
+        
+        {/* Quick Complaint Floating Widget */}
+        <QuickComplaintWidget />
       </main>
     </div>
   );
