@@ -62,6 +62,9 @@ Analyze the image and respond with a JSON object:
 }
 Only output the JSON object.`;
       userPrompt = `Analyze this image and detect any problems or issues visible.`;
+    } else if (type === 'response-suggestions') {
+      systemPrompt = `You are an AI assistant for a student complaint management system. Generate 3 professional response suggestions that an admin could send to address the complaint. Each suggestion should be complete, empathetic, and actionable. Format as a numbered list with each response on a new line.`;
+      userPrompt = `Generate 3 professional response suggestions for this complaint:\n\nTitle: ${complaint.title}\nDescription: ${complaint.description}\nCategory: ${complaint.category}\nUrgency: ${complaint.urgency}`;
     } else {
       throw new Error('Invalid type');
     }

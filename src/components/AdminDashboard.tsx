@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Search, BarChart3, Download, TrendingUp, AlertCircle, Flag, Columns3 } from "lucide-react";
+import { LogOut, Search, BarChart3, Download, TrendingUp, AlertCircle, Flag, Columns3, Clock, Scale } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { useNavigate } from "react-router-dom";
@@ -14,12 +14,18 @@ import { formatDistanceToNow } from "date-fns";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { ComplaintHeatmap } from "@/components/ComplaintHeatmap";
+import { ComplaintAgeingHeatmap } from "@/components/ComplaintAgeingHeatmap";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { exportToCSV, exportToPDF } from "@/utils/exportUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isComplaintOverdue, getOverdueHours } from "@/utils/slaTimer";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AdminCommandPalette } from "@/components/AdminCommandPalette";
+import { DuplicateDetector } from "@/components/DuplicateDetector";
+import { BroadcastMessage } from "@/components/BroadcastMessage";
+import { WorkloadBalancer } from "@/components/WorkloadBalancer";
+import { PriorityOverride } from "@/components/PriorityOverride";
 interface Complaint {
   id: string;
   title: string;
@@ -197,7 +203,12 @@ const AdminDashboard = () => {
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-foreground px-0 my-0 font-serif text-center">Admin's Dashboard</h1>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <AdminCommandPalette 
+              onExportCSV={() => exportToCSV(complaints as any)}
+              onExportPDF={() => exportToPDF(complaints as any)}
+            />
+            <BroadcastMessage />
             <ThemeToggle />
             <Button variant="ghost" onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
@@ -259,6 +270,14 @@ const AdminDashboard = () => {
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Heatmap
               </TabsTrigger>
+              <TabsTrigger value="ageing">
+                <Clock className="h-4 w-4 mr-2" />
+                Ageing
+              </TabsTrigger>
+              <TabsTrigger value="workload">
+                <Scale className="h-4 w-4 mr-2" />
+                Workload
+              </TabsTrigger>
             </TabsList>
             
             <div className="flex gap-2">
@@ -274,6 +293,9 @@ const AdminDashboard = () => {
           </div>
 
           <TabsContent value="complaints" className="space-y-6">
+            {/* Duplicate Detector Alert */}
+            <DuplicateDetector complaints={filteredComplaints} threshold={3} />
+
             {selectedComplaints.size > 0 && <Card className="border-primary/50 bg-primary/5">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
@@ -442,6 +464,20 @@ const AdminDashboard = () => {
 
           <TabsContent value="heatmap">
             <ComplaintHeatmap complaints={complaints} />
+          </TabsContent>
+
+          <TabsContent value="ageing">
+            <ComplaintAgeingHeatmap 
+              complaints={complaints as any} 
+              onSelectComplaint={(id) => navigate(`/complaint/${id}`)}
+            />
+          </TabsContent>
+
+          <TabsContent value="workload">
+            <WorkloadBalancer 
+              complaints={complaints as any}
+              onAssignmentComplete={fetchComplaints}
+            />
           </TabsContent>
         </Tabs>
       </main>
